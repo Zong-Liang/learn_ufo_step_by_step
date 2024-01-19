@@ -40,6 +40,9 @@ model_train_best = os.path.join(model_save_dir, "model_best.pth")
 
 if __name__ == "__main__":
     print("#" * 50 + " in image_dir " + "#" * 50)
+    print(train_data_dir)
+    print(os.path.join(train_data_dir, os.listdir(train_data_dir)[0]))
     pprint(os.listdir(os.path.join(train_data_dir, os.listdir(train_data_dir)[0])))
     print("#" * 50 + " in mask_dir " + "#" * 50)
     pprint(os.listdir(os.path.join(train_data_dir, os.listdir(train_data_dir)[1])))
+    print(os.path.join(train_data_dir, os.listdir(train_data_dir)[1]))

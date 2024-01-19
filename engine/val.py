@@ -38,8 +38,12 @@ def val_step(
     with torch.no_grad():
         ave_d, ave_i = [], []
         for p in range(len(val_data_dir)):
+            # print(len(val_data_dir))
+
             all_d, all_i = [], []
             all_class = os.listdir(os.path.join(val_data_dir[p], image_dir_name))
+            # print(len(all_class))
+
             image_list, gt_list = list(), list()
             for s in range(len(all_class)):
                 image_path = os.listdir(
@@ -69,6 +73,8 @@ def val_step(
                     )
                 )
             for i in range(len(image_list)):
+                # print(len(image_list))
+
                 cur_class_all_image = image_list[i]
                 cur_class_all_gt = gt_list[i]
 

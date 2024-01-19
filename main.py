@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from models.video_model import build_model, weights_init
+from models.model import build_model, weights_init
 from config.config import *
 from engine.train import train_step
 import os
@@ -18,7 +18,7 @@ if mode == "train":
     net = nn.DataParallel(net, device_ids=[0])
     net.train()
 
-    print(datetime.now().strftime("%F %T") + " start training on our_busv: ")
+    print(datetime.now().strftime("%F %T") + " start training on our_busv_1: ")
     train_step(
         net,
         train_data_dir,

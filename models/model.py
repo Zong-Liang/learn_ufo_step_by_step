@@ -166,7 +166,7 @@ class Model(nn.Module):
         self.mask = nn.ModuleList(mask_branch)
         self.extract = [13, 23, 33, 43]
         self.device = device
-        self.group_size = 1
+        self.group_size = 5
         self.intra = nn.ModuleList(intra)
         self.transformer_1 = Transformer(512, 4, 4, 782, group=self.group_size)
         self.transformer_2 = Transformer(512, 4, 4, 782, group=self.group_size)
@@ -178,7 +178,6 @@ class Model(nn.Module):
             x = self.base[k](x)
             if k in self.extract:
                 p.append(x)
-        # print("*" * 50 + "start forward" + "*" * 50)
         # print(len(p))
 
         # increase the channel
@@ -249,8 +248,8 @@ class Model(nn.Module):
         # cls pred
         cls_modulated_vector = self.cls_m(x)
         # print(cls_modulated_vector.shape)
-        cls_pred = self.cls(cls_modulated_vector)
-        # print(cls_pred.shape)
+        pred_cls = self.cls(cls_modulated_vector)
+        # print(pred_cls.shape)
 
         # semantic and spatial modulator
         g1 = fuse_hsp(cls_modulated_vector, newp[0], self.group_size)
@@ -326,10 +325,9 @@ class Model(nn.Module):
         for k in range(len(self.mask)):
             y = self.mask[k](y)
         # print(y.shape)
-        mask_pred = y[:, 0, :, :]
-        # print(mask_pred.shape)
-        # print("*" * 50 + "end forward" + "*" * 50)
-        return cls_pred, mask_pred
+        pred_mask = y[:, 0, :, :]
+        # print(pred_mask.shape)
+        return pred_cls, pred_mask
 
 
 # build the whole network
@@ -365,6 +363,7 @@ def weights_init(m):
 
 if __name__ == "__main__":
     net = build_model("cuda:0")
+    print(net.device)
     summary(
         net,
         input_size=(20, 3, 224, 224),

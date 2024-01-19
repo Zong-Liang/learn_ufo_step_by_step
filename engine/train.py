@@ -6,7 +6,7 @@ import torch
 from engine.val import val_step
 from torch.utils.data import DataLoader
 from load_data.load_data_1 import VideoDataset
-from config import config
+from config.config import *
 
 
 def train_step(
@@ -26,7 +26,7 @@ def train_step(
 ):
     optimizer = Adam(net.parameters(), learning_rate, weight_decay=1e-6)
     train_loader = DataLoader(
-        VideoDataset(train_data_dir, config.image_size, config.group_size),
+        VideoDataset(train_data_dir, epochs * batch_size, image_size, group_size),
         num_workers=0,
         batch_size=batch_size,
         shuffle=True,
@@ -54,12 +54,12 @@ def train_step(
         # print(pred_mask.shape)
         # print(pred_cls.shape)
 
-        all_loss, iou_loss, m_loss, c_loss, s_loss = loss(
+        all_loss, i_loss, m_loss, c_loss, s_loss = loss(
             pred_mask, mask_gt, pred_cls, cls_gt
         )
         all_loss.backward()
         epoch_loss = all_loss.item()
-        i_l = iou_loss.item()
+        i_l = i_loss.item()
         m_l = m_loss.item()
         c_l = c_loss.item()
         s_l = s_loss.item()
@@ -73,7 +73,6 @@ def train_step(
         if epoch % log_interval == 0:
             # print(img.shape)
             # print(mask_gt.shape)
-            # print("$" * 100)
             # print(pred_cls.shape)
             # print(pred_mask.shape)
 
@@ -107,7 +106,7 @@ def train_step(
             with torch.no_grad():
                 custom_print(
                     datetime.datetime.now().strftime("%F %T")
-                    + " now is evaluating our_busv: ",
+                    + " now is evaluating our_busv_1: ",
                     log_file,
                     "a+",
                 )
@@ -115,12 +114,12 @@ def train_step(
                     net,
                     val_data_dir,
                     device,
-                    config.group_size,
-                    config.image_size,
-                    config.image_dir_name,
-                    config.mask_dir_name,
-                    config.image_ext,
-                    config.mask_ext,
+                    group_size,
+                    image_size,
+                    image_dir_name,
+                    mask_dir_name,
+                    image_ext,
+                    mask_ext,
                 )
                 if ave_d[0] > best_d:
                     # follow your save condition

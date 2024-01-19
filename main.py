@@ -14,7 +14,7 @@ if mode == "train":
     device = torch.device("cuda")
     net = build_model(device).to(device)
     net.apply(weights_init)
-    net.base.load_state_dict(torch.load(vgg16_ckp))
+    net.base.load_state_dict(torch.load(vgg16_pth))
     net = nn.DataParallel(net, device_ids=[0])
     net.train()
 

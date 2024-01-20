@@ -86,8 +86,10 @@ class VideoDataset(Dataset):
 
 
 if __name__ == "__main__":
+    from config.config import *
+
     train_dataset = VideoDataset(
-        r"D:\Desktop\zongliang\processed_data\our_busv_1\train", 100000, 224, 5
+        train_data_dir, epochs * batch_size, image_size, group_size
     )
     train_loader = DataLoader(
         train_dataset,

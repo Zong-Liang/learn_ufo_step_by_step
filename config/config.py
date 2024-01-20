@@ -16,7 +16,7 @@ mask_dir_name = "mask"
 image_ext = [".jpg", ".jpg", ".jpg", ".jpg"]
 mask_ext = [".png", ".bmp", ".jpg", ".png"]
 
-vgg16_pth = r"D:\Desktop\zongliang\paper_code\learn_ufo_step_by_step\checkpoints\vgg16_bn_feat.pth"
+vgg16_pth = r"D:\Desktop\zongliang\checkpoints\vgg16_bn_feat.pth"
 image_size = 224
 learning_rate = 2e-5
 learning_rate_decay = 20000
@@ -26,13 +26,13 @@ epochs = 100000
 log_interval = 100
 val_interval = 1000
 
-log_dir = r"D:\Desktop\zongliang\paper_code\learn_ufo_step_by_step\logs"
+log_dir = r"D:\Desktop\zongliang\paper_code\logs"
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 log_file = os.path.join(log_dir, "log.txt")
 custom_print("#" * 50 + " start log " + "#" * 50, log_file, "w")
 
-model_save_dir = r"D:\Desktop\zongliang\paper_code\learn_ufo_step_by_step\checkpoints"
+model_save_dir = r"D:\Desktop\zongliang\paper_code\checkpoints"
 if not os.path.exists(model_save_dir):
     os.makedirs(model_save_dir)
 model_train_last = os.path.join(model_save_dir, "model_last.pth")

@@ -1,6 +1,5 @@
 from loss.loss import Loss
 from torch.optim import Adam
-from utils.utils import custom_print
 import datetime
 import torch
 from engine.val import val_step

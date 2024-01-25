@@ -16,7 +16,7 @@ mask_dir_name = "mask"
 image_ext = [".jpg", ".jpg", ".jpg", ".jpg"]
 mask_ext = [".png", ".bmp", ".jpg", ".png"]
 
-vgg16_pth = r"D:\Desktop\zongliang\checkpoints\vgg16_bn_feat.pth"
+vgg16_pth = r"D:\Desktop\zongliang\paper_code\checkpoints\vgg16_bn_feat.pth"
 image_size = 224
 learning_rate = 2e-5
 learning_rate_decay = 20000

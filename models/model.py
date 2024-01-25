@@ -172,13 +172,19 @@ class Model(nn.Module):
         self.transformer_2 = Transformer(512, 4, 4, 782, group=self.group_size)
 
     def forward(self, x):
+        # print(x.shape)  # torch.Size([20, 3, 224, 224])
+
         # backbone, p is the pool2, 3, 4, 5
         p = list()
         for k in range(len(self.base)):
             x = self.base[k](x)
             if k in self.extract:
                 p.append(x)
-        # print(len(p))
+        # print(len(p))  # 4
+        # print(p[0].shape)  # torch.Size([20, 128, 56, 56])
+        # print(p[1].shape)  # torch.Size([20, 256, 28, 28])
+        # print(p[2].shape)  # torch.Size([20, 512, 14, 14])
+        # print(p[3].shape)  # torch.Size([20, 512, 7, 7])
 
         # increase the channel
         newp = list()
@@ -194,140 +200,148 @@ class Model(nn.Module):
                 newp_T.append(self.transformer_2(newp[k]))
             if k < 2:
                 newp_T.append(None)
-        # print(len(newp))
-        # print(len(newp_T))
+        # print(len(newp))  # 4
+        # print(newp[0].shape)  # torch.Size([20, 512, 56, 56])
+        # print(newp[1].shape)  # torch.Size([20, 512, 28, 28])
+        # print(newp[2].shape)  # torch.Size([20, 512, 14, 14])
+        # print(newp[3].shape)  # torch.Size([20, 512, 7, 7])
+        # print(len(newp_T))  # 4
+        # print(newp_T[0])  # None
+        # print(newp_T[1])  # None
+        # print(newp_T[2].shape)  # torch.Size([20, 512, 14, 14])
+        # print(newp_T[3].shape)  # torch.Size([20, 512, 7, 7])
 
         # intra-MLP
         point = newp[3].view(newp[3].size(0), newp[3].size(1), -1)
-        # print(point.shape)
+        # print(point.shape)  # torch.Size([20, 512, 49])
         point = point.permute(0, 2, 1)
-        # print(point.shape)
+        # print(point.shape)  # torch.Size([20, 49, 512])
 
         idx = knn_l2(self.device, point, 4, 1)
-        # print(idx)
+        # print(idx.shape)  # torch.Size([20, 49, 4])
         new_point = index_points(self.device, point, idx)
-        # print(new_point.shape)
+        # print(new_point.shape)  # torch.Size([20, 49, 4, 512])
 
         group_point = new_point.permute(0, 3, 2, 1)
-        # print(group_point.shape)
+        # print(group_point.shape)  # torch.Size([20, 512, 4, 49])
         group_point = self.intra[0](group_point)
-        # print(group_point.shape)
+        # print(group_point.shape)  # torch.Size([20, 512, 4, 49])
         group_point = torch.max(group_point, 2)[0]  # [B, D', S]
-        # print(group_point.shape)
+        # print(group_point.shape)  # torch.Size([20, 512, 49])
 
         intra_mask = group_point.view(group_point.size(0), group_point.size(1), 7, 7)
-        # print(intra_mask.shape)
+        # print(intra_mask.shape)  # torch.Size([20, 512, 7, 7])
         intra_mask = intra_mask + newp[3]
-        # print(intra_mask.shape)
+        # print(intra_mask.shape)  # torch.Size([20, 512, 7, 7])
 
         spa_mask = self.intra[1](intra_mask)
-        # print(spa_mask.shape)
+        # print(spa_mask.shape)  # torch.Size([20, 512, 7, 7])
 
         # hsp
         x = newp[3]
-        # print(x.shape)
+        # print(x.shape)  # torch.Size([20, 512, 7, 7])
         x = self.sp1(x)
-        # print(x.shape)
+        # print(x.shape)  # torch.Size([20, 64, 7, 7])
         x = x.view(-1, x.size(1), x.size(2) * x.size(3))
-        # print(x.shape)
+        # print(x.shape)  # torch.Size([20, 64, 49])
         x = torch.bmm(x, x.transpose(1, 2))
-        # print(x.shape)
+        # print(x.shape)  # torch.Size([20, 64, 64])
         x = x.view(-1, x.size(1) * x.size(2))
-        # print(x.shape)
+        # print(x.shape)  # torch.Size([20, 4096])
         x = x.view(x.size(0) // self.group_size, x.size(1), -1, 1)
-        # print(x.shape)
+        # print(x.shape)  # torch.Size([4, 4096, 5, 1])
         x = self.sp2(x)
-        # print(x.shape)
+        # print(x.shape)  # torch.Size([4, 32, 5, 1])
         x = x.view(-1, x.size(1), x.size(2) * x.size(3))
-        # print(x.shape)
+        # print(x.shape)  # torch.Size([4, 32, 5])
         x = torch.bmm(x, x.transpose(1, 2))
-        # print(x.shape)
+        # print(x.shape)  # torch.Size([4, 32, 32])
         x = x.view(-1, x.size(1) * x.size(2))
-        # print(x.shape)
+        # print(x.shape)  # torch.Size([4, 1024])
 
         # cls pred
         cls_modulated_vector = self.cls_m(x)
-        # print(cls_modulated_vector.shape)
+        # print(cls_modulated_vector.shape)  # torch.Size([4, 512])
         pred_cls = self.cls(cls_modulated_vector)
-        # print(pred_cls.shape)
+        # print(pred_cls.shape)  # torch.Size([4, 78])
 
         # semantic and spatial modulator
         g1 = fuse_hsp(cls_modulated_vector, newp[0], self.group_size)
-        # print(g1.shape)
+        # print(g1.shape)  # torch.Size([20, 512, 56, 56])
         g2 = fuse_hsp(cls_modulated_vector, newp[1], self.group_size)
-        # print(g2.shape)
+        # print(g2.shape)  # torch.Size([20, 512, 28, 28])
         g3 = fuse_hsp(cls_modulated_vector, newp[2], self.group_size)
-        # print(g3.shape)
+        # print(g3.shape)  # torch.Size([20, 512, 14, 14])
         g4 = fuse_hsp(cls_modulated_vector, newp[3], self.group_size)
-        # print(g4.shape)
+        # print(g4.shape)  # torch.Size([20, 512, 7, 7])
 
         spa_1 = F.interpolate(
             spa_mask, size=[g1.size(2), g1.size(3)], mode="bilinear", align_corners=True
         )
-        # print(spa_1.shape)
+        # print(spa_1.shape)  # torch.Size([20, 512, 56, 56])
         spa_1 = spa_1.expand_as(g1)
-        # print(spa_1.shape)
+        # print(spa_1.shape)  # torch.Size([20, 512, 56, 56])
         spa_2 = F.interpolate(
             spa_mask, size=[g2.size(2), g2.size(3)], mode="bilinear", align_corners=True
         )
-        # print(spa_2.shape)
+        # print(spa_2.shape)  # torch.Size([20, 512, 28, 28])
         spa_2 = spa_2.expand_as(g2)
-        # print(spa_2.shape)
+        # print(spa_2.shape)  # torch.Size([20, 512, 28, 28])
         spa_3 = F.interpolate(
             spa_mask, size=[g3.size(2), g3.size(3)], mode="bilinear", align_corners=True
         )
-        # print(spa_3.shape)
+        # print(spa_3.shape)  # torch.Size([20, 512, 14, 14])
         spa_3 = spa_3.expand_as(g3)
-        # print(spa_3.shape)
+        # print(spa_3.shape)  # torch.Size([20, 512, 14, 14])
         spa_4 = F.interpolate(
             spa_mask, size=[g4.size(2), g4.size(3)], mode="bilinear", align_corners=True
         )
-        # print(spa_4.shape)
+        # print(spa_4.shape)  # torch.Size([20, 512, 7, 7])
         spa_4 = spa_4.expand_as(g4)
-        # print(spa_4.shape)
+        # print(spa_4.shape)  # torch.Size([20, 512, 7, 7])
 
         y4 = newp_T[3] * g4 + spa_4
-        # print(y4.shape)
+        # print(y4.shape)  # torch.Size([20, 512, 7, 7])
 
         for k in range(len(self.concat4)):
             y4 = self.concat4[k](y4)
-        # print(y4.shape)
+        # print(y4.shape)  # torch.Size([20, 512, 14, 14])
 
         y3 = newp_T[2] * g3 + spa_3
-        # print(y3.shape)
+        # print(y3.shape)  # torch.Size([20, 512, 14, 14])
 
         for k in range(len(self.concat3)):
             y3 = self.concat3[k](y3)
             if k == 1:
                 y3 = y3 + y4
-        # print(y3.shape)
+        # print(y3.shape)  # torch.Size([20, 512, 28, 28])
 
         y2 = newp[1] * g2 + spa_2
-        # print(y2.shape)
+        # print(y2.shape)  # torch.Size([20, 512, 28, 28])
 
         for k in range(len(self.concat2)):
             y2 = self.concat2[k](y2)
             if k == 1:
                 y2 = y2 + y3
-        # print(y2.shape)
+        # print(y2.shape)  # torch.Size([20, 512, 56, 56])
         y1 = newp[0] * g1 + spa_1
-        # print(y1.shape)
+        # print(y1.shape)  # torch.Size([20, 512, 56, 56])
 
         for k in range(len(self.concat1)):
             y1 = self.concat1[k](y1)
             if k == 1:
                 y1 = y1 + y2
-        # print(y1.shape)
+        # print(y1.shape)  # torch.Size([20, 512, 56, 56])
         y = y1
-        # print(y.shape)
+        # print(y.shape)  # torch.Size([20, 512, 56, 56])
 
         # decoder
         for k in range(len(self.mask)):
             y = self.mask[k](y)
-        # print(y.shape)
+        # print(y.shape)  # torch.Size([20, 2, 224, 224])
         pred_mask = y[:, 0, :, :]
-        # print(pred_mask.shape)
-        return pred_cls, pred_mask
+        # print(pred_mask.shape)  # torch.Size([20, 224, 224])
+        return pred_cls, pred_mask  # torch.Size([4, 78]) torch.Size([20, 224, 224])
 
 
 # build the whole network

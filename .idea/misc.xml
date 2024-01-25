@@ -4,7 +4,7 @@
     <option name="enabledOnReformat" value="true" />
     <option name="enabledOnSave" value="true" />
     <option name="pathToExecutable" value="D:\anaconda3\Scripts\black.exe" />
-    <option name="sdkName" value="ufo" />
+    <option name="sdkUUID" value="85045e20-6b91-4d6d-9126-8393c65f1c3f" />
   </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="ufo" project-jdk-type="Python SDK" />
 </project>

@@ -16,7 +16,7 @@ val_data_dir = [
 test_data_dir = [
     root_dir + r"\test",
 ]
-test_output_dir = r"D:\Desktop\zongliang\paper_code\test_outputs"
+test_output_dir = r"D:\Desktop\zongliang\paper_code\test_output"
 
 image_dir_name = "image"
 mask_dir_name = "mask"
@@ -24,7 +24,8 @@ image_ext = [".jpg", ".jpg", ".jpg", ".jpg"]
 mask_ext = [".png", ".bmp", ".jpg", ".png"]
 
 vgg16_pth = r"D:\Desktop\zongliang\paper_code\checkpoints\vgg16_bn_feat.pth"
-model_best_pth= "../../checkpoints/model_best.pth"
+model_best_pth = r"D:\Desktop\zongliang\paper_code\checkpoints\model_best.pth"
+
 image_size = 224
 learning_rate = 2e-5
 learning_rate_decay = 20000

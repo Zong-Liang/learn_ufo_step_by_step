@@ -1,7 +1,4 @@
-import os
 from PIL import Image
-import torch
-from torch import nn
 from torchvision import transforms
 from models.model import build_model
 from config.config import *
@@ -9,19 +6,13 @@ from config.config import *
 
 def test_step(
     device,
-    model_best_pth,
+    net,
     test_data_dir,
     test_output_dir,
     group_size,
     image_size,
     image_dir_name,
 ):
-    # 构建模型
-    net = build_model(device).to(device)
-    net = torch.nn.DataParallel(net)
-    net.load_state_dict(torch.load(model_best_pth))
-    net.eval()
-
     # 图像预处理
     img_transform = transforms.Compose(
         [
@@ -143,17 +134,3 @@ def test_step(
                     w, h = Image.open(image_list[i][j]).size
                     result = result.resize((w, h), Image.BILINEAR)
                     result.convert("L").save(exact_save_path)
-
-            print("done")
-
-
-if __name__ == "__main__":
-    test_step(
-        device,
-        model_best_pth,
-        test_data_dir,
-        test_output_dir,
-        group_size,
-        image_size,
-        image_dir_name,
-    )

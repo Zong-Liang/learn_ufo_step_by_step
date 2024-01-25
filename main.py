@@ -3,6 +3,7 @@ from torch import nn
 from models.model import build_model, weights_init
 from config.config import *
 from engine.train import train_step
+from engine.test import test_step
 import os
 from datetime import datetime
 
@@ -17,7 +18,9 @@ if mode == "train":
     net = nn.DataParallel(net, device_ids=[0])
     net.train()
 
-    print(datetime.now().strftime("%F %T") + " start training on our_busv_1: ")
+    print(
+        "$" * 50 + " " + datetime.now().strftime("%F %T") + " start train " + "$" * 50
+    )
     train_step(
         net,
         train_data_dir,
@@ -33,4 +36,24 @@ if mode == "train":
         log_interval,
         val_interval,
     )
-    print(datetime.now().strftime("%F %T") + " done!")
+    print("$" * 50 + " " + datetime.now().strftime("%F %T") + " done! " + "$" * 50)
+
+elif mode == "test":
+    net = build_model(device).to(device)
+    net = torch.nn.DataParallel(net, device_ids=[0])
+    net.load_state_dict(torch.load(model_best_pth))
+    net.eval()
+
+    print("$" * 50 + " " + datetime.now().strftime("%F %T") + " start test " + "$" * 50)
+    test_step(
+        device,
+        net,
+        test_data_dir,
+        test_output_dir,
+        group_size,
+        image_size,
+        image_dir_name,
+    )
+    print("$" * 50 + " " + datetime.now().strftime("%F %T") + " done! " + "$" * 50)
+else:
+    print("wrong mode! Your mode must be 'train' or 'test'!")

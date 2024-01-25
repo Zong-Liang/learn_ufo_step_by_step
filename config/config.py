@@ -1,7 +1,9 @@
 import os
 from utils.utils import custom_print
 from pprint import pprint
+import torch
 
+device = torch.device("cuda")
 
 mode = "train"
 # mode = "test"
@@ -11,12 +13,18 @@ train_data_dir = root_dir + r"\train"
 val_data_dir = [
     root_dir + r"\val",
 ]
+test_data_dir = [
+    root_dir + r"\test",
+]
+test_output_dir = r"D:\Desktop\zongliang\paper_code\test_outputs"
+
 image_dir_name = "image"
 mask_dir_name = "mask"
 image_ext = [".jpg", ".jpg", ".jpg", ".jpg"]
 mask_ext = [".png", ".bmp", ".jpg", ".png"]
 
 vgg16_pth = r"D:\Desktop\zongliang\paper_code\checkpoints\vgg16_bn_feat.pth"
+model_best_pth= "../../checkpoints/model_best.pth"
 image_size = 224
 learning_rate = 2e-5
 learning_rate_decay = 20000

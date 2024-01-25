@@ -11,7 +11,6 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 
 if mode == "train":
-    device = torch.device("cuda")
     net = build_model(device).to(device)
     net.apply(weights_init)
     net.base.load_state_dict(torch.load(vgg16_pth))
